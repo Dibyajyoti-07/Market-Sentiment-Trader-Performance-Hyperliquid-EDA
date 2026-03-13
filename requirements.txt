@@ -1,9 +1,6 @@
 pandas
 numpy
-matplotlib
-seaborn
-jupyter
-jupyterlab
-nbformat
-streamlit
 plotly
+streamlit
+# Optional but recommended for performance and local runs
+watchdog
