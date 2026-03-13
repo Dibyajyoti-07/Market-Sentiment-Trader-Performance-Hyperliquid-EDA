@@ -1,0 +1,7 @@
+venv/
+__pycache__/
+*.pyc
+.ipynb_checkpoints/
+.DS_Store
+.streamlit/
+# Datasets are kept in the repo for EDA reproducibility as they are under 50MB
