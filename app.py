@@ -680,4 +680,4 @@ with tab5:
 
 # ─── Footer ───────────────────────────────────────────────────────────────────
 st.markdown("---")
-st.caption("📌 Data: Hyperliquid Historical Trades · Crypto Fear & Greed Index | Built with Streamlit & Plotly | Phase 2 EDA")
+st.caption("📌 Data: Hyperliquid Historical Trades · Crypto Fear & Greed Index | Built with Streamlit & Plotly | EDA")
