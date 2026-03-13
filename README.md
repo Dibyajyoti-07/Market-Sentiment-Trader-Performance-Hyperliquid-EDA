@@ -1,5 +1,7 @@
 # Trader Intelligence Dashboard: Market Sentiment vs. Performance
 
+### 🔗 [Live Dashboard](https://market-sentiment-trader-performance-hyperliquid-eda-znbpk3dbr7.streamlit.app/)
+
 An Advanced Exploratory Data Analysis (EDA) dashboard that investigates the relationship between market sentiment (Crypto Fear & Greed Index) and historical trader performance on Hyperliquid.
 
 ## 📊 Overview
