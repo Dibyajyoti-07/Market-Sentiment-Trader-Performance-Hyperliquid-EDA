@@ -1,6 +1,7 @@
 pandas
 numpy
 plotly
-streamlit
-# Optional but recommended for performance and local runs
+# Pinning Streamlit to a modern version to avoid Altair compatibility issues
+streamlit>=1.31.0
+altair<5.0.0
 watchdog
