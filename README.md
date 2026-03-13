@@ -13,7 +13,7 @@ This project analyzes hundreds of thousands of individual trades to determine if
 - **Interactive Explorer:** Dynamic filters for Coins, Date Ranges, and Trade Sides with CSV export capabilities.
 
 ## 🛠️ Tech Stack
-- **Language:** Python 3.14+
+- **Language:** Python 3.11+
 - **Frontend/Dashboard:** [Streamlit](https://streamlit.io/)
 - **Visuals:** [Plotly](https://plotly.com/python/)
 - **Data:** Pandas, Numpy
