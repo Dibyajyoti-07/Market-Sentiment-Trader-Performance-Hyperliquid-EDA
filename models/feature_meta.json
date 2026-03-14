@@ -1,0 +1,1 @@
+{"numerical_features": ["value", "LogSizeUSD", "SentimentRank", "DayOfWeek", "HourOfDay", "IsWeekend", "SizePercentile", "CoinWinRate30", "SentxSize"], "categorical_features": ["Coin"]}

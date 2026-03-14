@@ -4,6 +4,8 @@ import numpy as np
 import plotly.express as px
 import plotly.graph_objects as go
 from plotly.subplots import make_subplots
+import pickle
+import os
 
 # ─── Page Config ──────────────────────────────────────────────────────────────
 st.set_page_config(
@@ -75,13 +77,21 @@ html, body, [class*="css"] { font-family: 'Inter', sans-serif; }
     font-size: 0.93rem; line-height: 1.7;
 }
 div[data-testid="stSidebar"] { background: #0f172a; }
-.stTabs [data-baseweb="tab-list"] { gap: 8px; }
+.stTabs [data-baseweb="tab-list"] { 
+    gap: 8px; 
+    width: 100%;
+    justify-content: space-between;
+}
 .stTabs [data-baseweb="tab"] {
     border-radius: 10px 10px 0 0;
-    padding: 8px 20px;
+    padding: 8px 10px;
     background: #1e293b;
     color: #94a3b8;
     font-weight: 600;
+    flex: 1;
+    text-align: center;
+    display: flex;
+    justify-content: center;
 }
 .stTabs [aria-selected="true"] {
     background: #6366f1 !important;
@@ -148,11 +158,7 @@ def metric_html(label, value, delta=None, positive=True):
     if delta is not None:
         cls = "positive" if positive else "negative"
         delta_html = f'<div class="metric-delta {cls}">{delta}</div>'
-    return f"""<div class="metric-card">
-        <div class="metric-label">{label}</div>
-        <div class="metric-value">{value}</div>
-        {delta_html}
-    </div>"""
+    return f'<div class="metric-card"><div class="metric-label">{label}</div><div class="metric-value">{value}</div>{delta_html}</div>'
 
 def section(title): st.markdown(f'<div class="section-header">{title}</div>', unsafe_allow_html=True)
 def insight(text):  st.markdown(f'<div class="insight-box">{text}</div>', unsafe_allow_html=True)
@@ -226,8 +232,9 @@ st.markdown("<br>", unsafe_allow_html=True)
 # ═══════════════════════════════════════════════════════════════════════════════
 # TABS
 # ═══════════════════════════════════════════════════════════════════════════════
-tab1, tab2, tab3, tab4, tab5 = st.tabs([
+tab1, tab2, tab3, tab4, tab5, tab6 = st.tabs([
     "📈 Sentiment Overview",
+    "🧙‍♂️ Trade Predictor",
     "⚖️ Long vs Short",
     "🧠 Trader Profiling",
     "🐋 Whale Analysis",
@@ -361,9 +368,9 @@ with tab1:
 
 
 # ════════════════════════════════════════════════════
-# TAB 2 — LONG vs SHORT (PHASE 2)
+# TAB 3 — LONG VS SHORT (PHASE 2)
 # ════════════════════════════════════════════════════
-with tab2:
+with tab3:
     section("⚖️ Long vs Short: Directional Performance by Sentiment")
     insight("""Does going <b>Long during Greed</b> or <b>Short during Fear</b> pay off systematically?
     Here we break down Win Rate, Average PnL, and Trade Volume separately for Long and Short positions across each sentiment phase.
@@ -436,9 +443,9 @@ with tab2:
 
 
 # ════════════════════════════════════════════════════
-# TAB 3 — TRADER PROFILING (PHASE 2)
+# TAB 4 — TRADER PROFILING (PHASE 2)
 # ════════════════════════════════════════════════════
-with tab3:
+with tab4:
     section("🧠 Smart Money vs Retail: Trader Profiling")
     insight("""Using the <b>Account</b> hash, we profile each unique trader's net performance.
     <b>Smart Money</b> = accounts with positive total PnL (net profitable over the dataset).
@@ -542,9 +549,9 @@ with tab3:
 
 
 # ════════════════════════════════════════════════════
-# TAB 4 — WHALE ANALYSIS (PHASE 2)
+# TAB 5 — WHALE ANALYSIS (PHASE 2)
 # ════════════════════════════════════════════════════
-with tab4:
+with tab5:
     section(f"🐋 Whale vs Retail: Trade Size Analysis (Whale = >{compact_num(whale_threshold)})")
     insight(f"""We define <b>Whale Trades</b> as the top 5% of trades by USD size
     (threshold: <b>{compact_num(whale_threshold)}</b> per trade). The hypothesis is that institutional or whale positions
@@ -644,9 +651,9 @@ with tab4:
 
 
 # ════════════════════════════════════════════════════
-# TAB 5 — DATA EXPLORER
+# TAB 6 — DATA EXPLORER
 # ════════════════════════════════════════════════════
-with tab5:
+with tab6:
     section("🔍 Interactive Raw Data Explorer")
     insight("Browse the full merged dataset with your current sidebar filters applied. You can sort any column by clicking the header, and download filtered results as CSV.")
 
@@ -678,6 +685,261 @@ with tab5:
         mime="text/csv"
     )
 
+# ════════════════════════════════════════════════════
+# TAB 2 — TRADE PREDICTOR
+# ════════════════════════════════════════════════════
+with tab2:
+    section("🧙‍♂️ AI Trade Predictor — Buy or Sell?")
+    insight(
+        "This predictor uses a Deep Neural Network trained on <b>86,863 historically profitable trades</b>. "
+        "It analyses the current Fear & Greed sentiment, your selected coin, and position size to recommend "
+        "whether going <b>Long (Buy)</b> or <b>Short (Sell)</b> is historically more likely to be profitable under these conditions.",
+    )
+
+    # ── Load model and preprocessor ──────────────────────────────────────────
+    # @st.cache_resource  # Disabled to force loading the retrained model
+
+    def load_model():
+        try:
+            from tensorflow.keras.models import load_model as keras_load
+            nn = keras_load("models/trade_predictor_nn.h5", compile=False)
+            with open("models/preprocessor.pkl", "rb") as f:
+                pre = pickle.load(f)
+            return nn, pre, True
+        except Exception as e:
+            return None, None, str(e)
+
+    nn_model, preprocessor, model_ok = load_model()
+
+    if model_ok is not True:
+        st.warning(f"⚠️ Model files not found. Please run and execute all cells in `eda_analysis.ipynb` first to train and save the model.\n\nError: {model_ok}")
+    else:
+        all_coins_sorted = sorted(merged_df["Coin"].dropna().unique().tolist())
+
+        # ── Known sentiment presets ───────────────────────────────────────────
+        SENTIMENT_PRESETS = {
+            "Extreme Fear (< 25)"   : 12,
+            "Fear (25–44)"          : 35,
+            "Neutral (45–54)"       : 50,
+            "Greed (55–74)"         : 65,
+            "Extreme Greed (≥ 75)" : 85,
+        }
+
+        # ── Size presets ─────────────────────────────────────────────────────
+        SIZE_PRESETS = {
+            "Micro   (~$100)"     : 100,
+            "Small   (~$1K)"      : 1_000,
+            "Medium  (~$5K)"      : 5_000,
+            "Large   (~$20K)"     : 20_000,
+            "Whale   (~$100K)"    : 100_000,
+            "📝 Enter custom…"    : None,
+        }
+
+        st.markdown("### ⚙️ Configure Trade Conditions")
+        col_a, col_b, col_c = st.columns(3)
+
+        # ── COIN input ───────────────────────────────────────────────────────
+        with col_a:
+            st.markdown("**🪙 Coin / Asset**")
+            coin_choice = st.selectbox(
+                "Choose from list or type below",
+                options=["📝 Enter custom coin…"] + all_coins_sorted,
+                index=0,
+                key="coin_select",
+                label_visibility="collapsed"
+            )
+            if coin_choice == "📝 Enter custom coin…":
+                coin_input = st.text_input("Enter coin name (e.g. BTC, ETH)", value="BTC", key="coin_custom")
+            else:
+                coin_input = coin_choice
+                st.caption(f"Selected: **{coin_input}**")
+
+        # ── Fear & Greed input ───────────────────────────────────────────────
+        with col_b:
+            st.markdown("**📊 Current Fear & Greed Index**")
+            fg_preset = st.selectbox(
+                "Choose a sentiment level",
+                options=list(SENTIMENT_PRESETS.keys()) + ["📝 Enter custom value…"],
+                index=4,
+                key="fg_select",
+                label_visibility="collapsed"
+            )
+            if fg_preset == "📝 Enter custom value…":
+                fg_value = st.slider("Fear & Greed (0 = Extreme Fear, 100 = Extreme Greed)", 0, 100, 65, key="fg_custom")
+            else:
+                fg_value = SENTIMENT_PRESETS[fg_preset]
+                if fg_value < 25:   fg_label, fg_color = "Extreme Fear", "#dc2626"
+                elif fg_value < 45: fg_label, fg_color = "Fear",         "#f97316"
+                elif fg_value < 55: fg_label, fg_color = "Neutral",      "#facc15"
+                elif fg_value < 75: fg_label, fg_color = "Greed",        "#4ade80"
+                else:               fg_label, fg_color = "Extreme Greed","#22c55e"
+                st.markdown(
+                    f"<div style='margin-top:6px; padding:6px 12px; border-radius:8px; "
+                    f"background:{fg_color}22; border:1px solid {fg_color}; color:{fg_color}; font-weight:700;'>"
+                    f"Index: <b>{fg_value}</b> — {fg_label}</div>",
+                    unsafe_allow_html=True
+                )
+
+        # ── Position Size input ──────────────────────────────────────────────
+        with col_c:
+            st.markdown("**💰 Position Size (USD)**")
+            size_preset = st.selectbox(
+                "Choose a position size",
+                options=list(SIZE_PRESETS.keys()),
+                index=2,
+                key="size_select",
+                label_visibility="collapsed"
+            )
+            if SIZE_PRESETS[size_preset] is None:
+                size_value = st.number_input("Enter position size ($)", min_value=1.0, value=5000.0, step=100.0, key="size_custom")
+            else:
+                size_value = float(SIZE_PRESETS[size_preset])
+                st.caption(f"Position: **${size_value:,.0f}**")
+
+        # ── Trade Time input (for temporal features) ─────────────────────────
+        import datetime as _dt
+        st.markdown("**🕐 Trade Timing**")
+        t_col1, t_col2 = st.columns(2)
+        with t_col1:
+            HOUR_PRESETS = {
+                "Early Morning (0–5h)": 3, "Morning (6–11h)": 9,
+                "Afternoon (12–17h)": 14, "Evening (18–23h)": 20,
+                "📝 Custom hour": None
+            }
+            hour_sel = st.selectbox("Hour of day", options=list(HOUR_PRESETS.keys()), index=2, key="hour_sel")
+            hour_val = HOUR_PRESETS[hour_sel]
+            if hour_val is None:
+                hour_val = st.slider("Hour (0–23)", 0, 23, 12, key="hour_custom")
+        with t_col2:
+            DAY_PRESETS = {
+                "Monday": 0, "Tuesday": 1, "Wednesday": 2, "Thursday": 3,
+                "Friday": 4, "Saturday": 5, "Sunday": 6
+            }
+            day_sel = st.selectbox("Day of week", options=list(DAY_PRESETS.keys()),
+                                   index=_dt.datetime.now().weekday(), key="day_sel")
+            day_val = DAY_PRESETS[day_sel]
+
+        st.markdown("<br>", unsafe_allow_html=True)
+
+        # ── Predict Button ───────────────────────────────────────────────────
+        col_btn, col_mid, col_right = st.columns([1, 2, 1])
+        with col_mid:
+            predict_clicked = st.button("🔮 Get Prediction", use_container_width=True, type="primary")
+
+        if predict_clicked:
+            import json as _json, math as _math
+
+            # Compute derived features (mirrors the notebook feature engineering)
+            log_size     = _math.log1p(size_value)
+            is_weekend   = 1 if day_val >= 5 else 0
+            sent_rank    = (0 if fg_value < 25 else 1 if fg_value < 45 else
+                            2 if fg_value < 55 else 3 if fg_value < 75 else 4)
+            # SizePercentile: approximate with a fixed median for new trades
+            size_pct     = 0.5
+            # CoinWinRate30: use dataset historical win rate for this coin if available
+            coin_history = merged_df[merged_df["Coin"] == str(coin_input).strip()]
+            coin_wr      = float((coin_history["Closed PnL"] > 0).mean()) if len(coin_history) > 5 else 0.5
+            sent_x_size  = fg_value * log_size
+
+            # Build input dataframe matching training feature order
+            input_df = pd.DataFrame({
+                "value":           [float(fg_value)],
+                "LogSizeUSD":      [log_size],
+                "SentimentRank":   [float(sent_rank)],
+                "DayOfWeek":       [float(day_val)],
+                "HourOfDay":       [float(hour_val)],
+                "IsWeekend":       [float(is_weekend)],
+                "SizePercentile":  [size_pct],
+                "CoinWinRate30":   [coin_wr],
+                "SentxSize":       [sent_x_size],
+                "Coin":            [str(coin_input).strip()],
+            })
+
+            try:
+                X_pred = preprocessor.transform(input_df)
+                prob_long = float(nn_model.predict(X_pred, verbose=0)[0][0])
+                prob_short = 1.0 - prob_long
+                is_long = prob_long >= 0.5
+                label      = "LONG  (Buy  ↑)" if is_long else "SHORT  (Sell  ↓)"
+                confidence = prob_long if is_long else prob_short
+                rec_color  = "#22c55e" if is_long else "#ef4444"
+                rec_emoji  = "📈" if is_long else "📉"
+
+                # Main result card
+                st.markdown(
+                    f"""
+                    <div style='margin: 1.5rem auto; max-width: 600px;
+                         background: linear-gradient(135deg, {rec_color}18 0%, #0f172a 100%);
+                         border: 2px solid {rec_color}; border-radius: 20px;
+                         padding: 2rem; text-align: center;'>
+                        <div style='font-size:3rem; margin-bottom:0.5rem;'>{rec_emoji}</div>
+                        <div style='color: {rec_color}; font-size: 2rem; font-weight: 900;
+                                    letter-spacing: 0.05em;'>{label}</div>
+                        <div style='color: #94a3b8; font-size: 0.95rem;
+                                    margin-top: 0.5rem;'>Confidence: <b style='color:#f8fafc;'>{confidence*100:.1f}%</b></div>
+                    </div>
+                    """,
+                    unsafe_allow_html=True
+                )
+
+                # Confidence gauge
+                fig_gauge = go.Figure(go.Indicator(
+                    mode="gauge+number",
+                    value=prob_long * 100,
+                    title={"text": "Probability of Long (Buy)", "font": {"color": "#f8fafc", "size": 16}},
+                    number={"suffix": "%", "font": {"color": "#f8fafc", "size": 28}},
+                    gauge={
+                        "axis": {"range": [0, 100], "tickcolor": "#94a3b8"},
+                        "bar": {"color": "#22c55e" if is_long else "#ef4444"},
+                        "bgcolor": "#1e293b",
+                        "bordercolor": "#334155",
+                        "steps": [
+                            {"range": [0,  40], "color": "rgba(239,68,68,0.2)"},
+                            {"range": [40, 60], "color": "rgba(250,204,21,0.2)"},
+                            {"range": [60,100], "color": "rgba(34,197,94,0.2)"},
+                        ],
+                        "threshold": {
+                            "line": {"color": "white", "width": 2},
+                            "thickness": 0.75,
+                            "value": 50,
+                        },
+                    }
+                ))
+                fig_gauge.update_layout(
+                    height=280,
+                    margin=dict(t=40, b=10, l=40, r=40),
+                    paper_bgcolor="rgba(0,0,0,0)",
+                    font_color="#f8fafc"
+                )
+
+                g_col1, g_col2, g_col3 = st.columns([1, 2, 1])
+                with g_col2:
+                    st.plotly_chart(fig_gauge, use_container_width=True)
+
+                # Detail breakdown
+                st.markdown("#### 📋 Input Summary")
+                detail_cols = st.columns(3)
+                with detail_cols[0]:
+                    st.markdown(metric_html("Coin", coin_input.upper()), unsafe_allow_html=True)
+                with detail_cols[1]:
+                    st.markdown(metric_html("Fear & Greed Index", str(fg_value)), unsafe_allow_html=True)
+                with detail_cols[2]:
+                    st.markdown(metric_html("Position Size", compact_num(size_value)), unsafe_allow_html=True)
+
+                st.markdown("<br>", unsafe_allow_html=True)
+                insight(
+                    f"The model predicts a <b>{'Long (Buy)' if is_long else 'Short (Sell)'}</b> position is "
+                    f"<b>{confidence*100:.1f}%</b> likely to be profitable given a Fear & Greed index of "
+                    f"<b>{fg_value}</b> with a <b>{compact_num(size_value)}</b> position on <b>{coin_input.upper()}</b>. "
+                    "This is based on patterns learned from 86K+ historically profitable trades — always apply your own judgment."
+                )
+
+            except ValueError as ve:
+                st.error(f"⚠️ Coin **'{coin_input}'** was not seen during training. Try selecting a coin from the dropdown list. ({ve})")
+            except Exception as ex:
+                st.error(f"❌ Prediction failed: {ex}")
+
 # ─── Footer ───────────────────────────────────────────────────────────────────
 st.markdown("---")
 st.caption("📌 Data: Hyperliquid Historical Trades · Crypto Fear & Greed Index | Built with Streamlit & Plotly | EDA")
+

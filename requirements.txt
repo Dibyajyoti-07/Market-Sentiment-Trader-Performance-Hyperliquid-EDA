@@ -1,5 +1,12 @@
 pandas
 numpy
+matplotlib
+seaborn
 plotly
 streamlit>=1.31.0
 watchdog
+scikit-learn
+tensorflow
+tensorboard
+setuptools==70.3.0
+ipykernel

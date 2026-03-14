@@ -12,13 +12,15 @@ This project analyzes hundreds of thousands of individual trades to determine if
 - **Long vs. Short:** Directional performance tracking across different market regimes.
 - **Trader Profiling:** Automatic classification of "Smart Money" vs. "Retail" based on net profitability.
 - **Whale Tracking:** Isolation and analysis of the top 5% largest trades by USD size.
+- **AI Trade Predictor:** A Deep Neural Network trained on 86,000+ profitable trades to forecast Long vs Short profitability based on sentiment, position size, and time.
 - **Interactive Explorer:** Dynamic filters for Coins, Date Ranges, and Trade Sides with CSV export capabilities.
 
 ## 🛠️ Tech Stack
 - **Language:** Python 3.11+
 - **Frontend/Dashboard:** [Streamlit](https://streamlit.io/)
 - **Visuals:** [Plotly](https://plotly.com/python/)
-- **Data:** Pandas, Numpy
+- **Data:** Pandas, Numpy, Scikit-Learn
+- **Machine Learning:** TensorFlow, Keras
 - **Environment:** Jupyter Notebook (for raw data pipeline)
 
 ## 📦 Installation & Setup
@@ -49,6 +51,7 @@ This project analyzes hundreds of thousands of individual trades to determine if
 - `eda_analysis.ipynb`: Raw analysis and data merging pipeline.
 - `requirements.txt`: List of Python dependencies.
 - `Datasets/`: Historical trade data and sentiment index files.
+- `models/`: Serialized Keras `.h5` model and `.pkl` preprocessor pipeline.
 - `README.md`: Project documentation.
 - `LICENSE`: MIT License.
 
