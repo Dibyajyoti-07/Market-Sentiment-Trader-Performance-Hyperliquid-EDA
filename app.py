@@ -748,11 +748,9 @@ with tab2:
                 key="coin_select",
                 label_visibility="collapsed"
             )
-            if coin_choice == "📝 Enter custom coin…":
-                coin_input = st.text_input("Enter coin name (e.g. BTC, ETH)", value="BTC", key="coin_custom")
-            else:
-                coin_input = coin_choice
-                st.caption(f"Selected: **{coin_input}**")
+            
+            coin_input = coin_choice
+            st.caption(f"Selected: **{coin_input}**")
 
         # ── Fear & Greed input ───────────────────────────────────────────────
         with col_b:
