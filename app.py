@@ -165,6 +165,28 @@ def insight(text):  st.markdown(f'<div class="insight-box">{text}</div>', unsafe
 
 # ─── Sidebar ──────────────────────────────────────────────────────────────────
 with st.sidebar:
+    # ─── Developer Credit Profile ──────────────────────────────────────────────
+    import base64
+    try:
+        with open("assets/profile.jpg", "rb") as image_file:
+            encoded_string = base64.b64encode(image_file.read()).decode()
+            prof_html = f"""
+            <div style="display:flex; align-items:center; background:#1e293b; padding:12px; border-radius:12px; border:1px solid #334155; margin-bottom:20px;">
+                <img src="data:image/jpeg;base64,{encoded_string}" style="width:40px; height:40px; border-radius:50%; object-fit:cover; margin-right:12px; border:2px solid #6366f1;">
+                <div>
+                    <div style="color:#94a3b8; font-size:11px; font-weight:600; text-transform:uppercase; letter-spacing:0.5px;">Developed by</div>
+                    <div style="color:#f8fafc; font-size:14px; font-weight:700;">Dibyajyoti Sarkar</div>
+                </div>
+            </div>
+            """
+            st.sidebar.markdown(prof_html, unsafe_allow_html=True)
+    except Exception:
+        # Fallback if image is missing
+        st.sidebar.markdown("""
+        <div style="text-align:center; padding-bottom:20px; color:#94a3b8; font-size:12px;">
+            Developed by <b>Dibyajyoti Sarkar</b>
+        </div>
+        """, unsafe_allow_html=True)
     st.markdown("## 🎛️ Global Filters")
     st.markdown("---")
 
@@ -188,29 +210,7 @@ with st.sidebar:
         max_value=merged_df["date"].max()
     )
 
-    # ─── Developer Credit Profile ──────────────────────────────────────────────
-    import base64
-    st.sidebar.markdown("<br><br><br>", unsafe_allow_html=True)
-    try:
-        with open("assets/profile.jpg", "rb") as image_file:
-            encoded_string = base64.b64encode(image_file.read()).decode()
-            prof_html = f"""
-            <div style="display:flex; align-items:center; background:#1e293b; padding:12px; border-radius:12px; border:1px solid #334155; margin-top:20px;">
-                <img src="data:image/jpeg;base64,{encoded_string}" style="width:40px; height:40px; border-radius:50%; object-fit:cover; margin-right:12px; border:2px solid #6366f1;">
-                <div>
-                    <div style="color:#94a3b8; font-size:11px; font-weight:600; text-transform:uppercase; letter-spacing:0.5px;">Developed by</div>
-                    <div style="color:#f8fafc; font-size:14px; font-weight:700;">Dibyajyoti Sarkar</div>
-                </div>
-            </div>
-            """
-            st.sidebar.markdown(prof_html, unsafe_allow_html=True)
-    except Exception:
-        # Fallback if image is missing
-        st.sidebar.markdown("""
-        <div style="text-align:center; padding-top:20px; color:#94a3b8; font-size:12px;">
-            Developed by <b>Dibyajyoti Sarkar</b>
-        </div>
-        """, unsafe_allow_html=True)
+
     st.markdown("---")
     pnl_threshold = st.slider("PnL Outlier Clip (±USD)",
                               min_value=100, max_value=20000, value=5000, step=100)
