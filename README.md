@@ -60,5 +60,14 @@ This project analyzes hundreds of thousands of individual trades to determine if
 - **Retail** traders frequently "average down" with larger sizes during panics, leading to significant realized losses.
 - **Extreme Greed** typically yields the highest win rates but also the highest PnL variance, indicating high-risk momentum chasing.
 
+## ⚠️ Deployment Troubleshooting (Streamlit Cloud)
+If you encounter a `No matching distribution found for tensorflow` or resolving dependencies error on Streamlit Community Cloud:
+1. Streamlit Cloud may default to Python 3.14+ for new deployments, but **TensorFlow requires Python 3.9 - 3.12**.
+2. Go to your Streamlit App Dashboard.
+3. Click the **three dots (⋮)** next to your app -> **Settings**.
+4. Go to the **Advanced settings** tab.
+5. Change the **Python version** dropdown from 3.14 to **3.11** or **3.12**.
+6. At the bottom, click **Save**, and then reboot your app.
+
 ---
 *Created for Advanced Trader Analytics.*
