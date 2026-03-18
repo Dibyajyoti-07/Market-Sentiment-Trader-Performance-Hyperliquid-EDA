@@ -23,6 +23,34 @@ This project analyzes hundreds of thousands of individual trades to determine if
 - **Machine Learning:** TensorFlow, Keras
 - **Environment:** Jupyter Notebook (for raw data pipeline)
 
+## 🤖 AI Model Details: Trade Predictor NN
+
+The dashboard features a **Deep Neural Network (DNN)** trained on a massive dataset of high-performance trades to provide real-time directional recommendations.
+
+### 🧠 Architecture
+The model is a **Feed-Forward Neural Network (FNN)** built using Keras/TensorFlow with the following structure:
+- **Input Layer:** 196 features (after One-Hot Encoding categorical coins and scaling numeric inputs).
+- **Hidden Layer 1:** 256 units (ReLU) + Batch Normalization + Dropout (30%).
+- **Hidden Layer 2:** 128 units (ReLU) + Batch Normalization + Dropout (25%).
+- **Hidden Layer 3:** 64 units (ReLU) + Dropout (20%).
+- **Hidden Layer 4:** 32 units (ReLU).
+- **Output Layer:** 1 unit (Sigmoid) — outputs probability of a "Long" trade being profitable.
+
+### 📊 Training & Performance
+- **Dataset:** Trained on **86,863 historically profitable trades** ("Winners") to learn the DNA of a successful entry.
+- **Optimization:** Adam Optimizer (LR=0.001) with Binary Cross-Entropy loss.
+- **Primary Accuracy:** ~56.5% on completely unseen test data (significantly outperforming a random 50/50 baseline).
+- **Baseline Comparison:** Outperforms the Random Forest Classifier (~59% on training but higher variance on test).
+
+### ⚙️ Feature Engineering
+The model analyzes 10+ core signals for every prediction:
+1. **Market Sentiment:** Raw Fear & Greed Index (0-100).
+2. **Sentiment Rank:** Categorical classification (Extreme Fear to Extreme Greed).
+3. **Log Size (USD):** Log-normalized trade size to handle whale outliers.
+4. **Temporal Flags:** Hour of day, Day of week, and Weekend status.
+5. **Coin Metrics:** Individual coin win-rates and size percentiles.
+6. **Interaction Effects:** Sentiment × Position Size synergies.
+
 ## 📦 Installation & Setup
 
 1. **Clone the repository** (or navigate to the project folder):
