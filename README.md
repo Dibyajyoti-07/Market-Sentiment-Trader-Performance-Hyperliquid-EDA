@@ -39,7 +39,7 @@ The model is a **Feed-Forward Neural Network (FNN)** built using Keras/TensorFlo
 ### 📊 Training & Performance
 - **Dataset:** Trained on **86,863 historically profitable trades** ("Winners") to learn the DNA of a successful entry.
 - **Optimization:** Adam Optimizer (LR=0.001) with Binary Cross-Entropy loss.
-- **Primary Accuracy:** ~56.5% on completely unseen test data (significantly outperforming a random 50/50 baseline).
+- **Primary Accuracy:** ~57.1% on completely unseen test data (trained for **500 epochs**).
 - **Baseline Comparison:** Outperforms the Random Forest Classifier (~59% on training but higher variance on test).
 
 ### ⚙️ Feature Engineering
